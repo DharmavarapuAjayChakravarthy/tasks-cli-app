@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: 
+Class-Path: postgresql-42.2.16.jar json-20140107.jar
+
