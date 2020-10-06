@@ -3,12 +3,18 @@ import java.util.Scanner;
 
 public  class DBTodo implements  TaskServices {
     Connection c = null;
+    TaskServices taskServices;
     @Override
-    public void add() {
+    public AddContract.AddOutputContract add(AddContract.AddInputContract addInputContract) {
+        AddContract.AddOutputContract addOutputContract = new AddContract.AddOutputContract();
         try {
 
             Statement stmt ;
-            Class.forName("org.postgres.Driver");
+                try {
+                    Class.forName("org.postgresql.Driver");
+                } catch (ClassNotFoundException e) {
+                    System.err.println(e);
+                }
             c = DriverManager.getConnection("jdbc:postgres:" +
                             "//localhost:" +
                             "5432" +
@@ -28,112 +34,97 @@ public  class DBTodo implements  TaskServices {
             System.out.println("table cannot be created");
         }
         System.out.println("Table Created Successfully");
-        System.out.println("Add a task (Id, name,date(dd/mm/yyyy)," +
-                " status)");
-        Scanner ip = new Scanner(System.in);
-        Todo todo = new Todo();
-        System.out.println("Enter ID"); //user id
-        todo.id = ip.nextInt();
-        System.out.println("Enter Name"); //user name
-        todo.name = ip.next();
-        System.out.println("Enter Date"); //date
-        todo.date = ip.next();
-        System.out.println("Enter Status"); // status of the work
-        todo.status = Status.valueOf(ip.next());
-        System.out.println(todo.toString());
+
         try {
             Connection c ;
             c = DriverManager.getConnection("jdbc:postgres:" +
                             "//localhost:" +
                             "5432" +
-                            "/mydb",
+                            "/mydb?useSSL=false",
                     "postgres", "root");
             PreparedStatement st = c.prepareStatement("INSERT INTO" +
                     " todo (id, name, date, status)" +
                     " VALUES (?, ?, ?, ?)"); // inserting records
-            st.setInt(1, todo.id);
-            st.setString(2, todo.name);
-            st.setString(3, todo.date);
-            st.setString(4, String.valueOf(todo.status));
+            st.setInt(1, addInputContract.id);
+            st.setString(2, addInputContract.name);
+            st.setString(3, addInputContract.date);
+            st.setString(4, String.valueOf(addInputContract.status));
             st.executeUpdate();
+            addOutputContract.id=addInputContract.id;
+            addOutputContract.name = addInputContract.name;
+            addOutputContract.date = addInputContract.date;
+            addOutputContract.status = addInputContract.status;
             System.out.println("Inserted records successfully");
             } catch (Exception ex) {
             System.out.println(ex);
         }
+            return addOutputContract;
 
     }
 
     @Override
-    public void delete() {
+    public DeleteContract.DeleteOutputContract delete(DeleteContract.DeleteInputContract deleteInputContract) {
+        DeleteContract.DeleteOutputContract deleteOutputContract = new DeleteContract.DeleteOutputContract();
         try {
             Class.forName("org.postgres.Driver");
             c = DriverManager.getConnection("jdbc:postgres:" +
                             "//localhost:" +
                             "5432" +
-                            "/mydb",
+                            "/mydb?useSSL=false",
                     "postgres", "root");
         }catch (Exception e) {
                 System.out.println("table cannot be created");
             }
-        System.out.println("Enter the id to remove the task: ");
-        Scanner input = new Scanner(System.in);
-        System.out.println("Enter ID");
-        int remove_id = input.nextInt();
         try {
             PreparedStatement st = c.prepareStatement("DELETE FROM" +
                     " todo WHERE id = ?");
             /* delete on id */
-            st.setInt(1, remove_id);
+            st.setInt(1,deleteInputContract.id);
             st.executeUpdate();
             System.out.println("Deleted Successfully");
         } catch (Exception exp) {
             System.out.println("cannot delete");
         }
-
+        return deleteOutputContract;
     }
 
 
     @Override
-    public void modify() {
+    public ModifyContract.ModifyOutputContract modify(ModifyContract.ModifyInputContract modifyInputContract) {
+        ModifyContract.ModifyOutputContract modifyOutputContract = new ModifyContract.ModifyOutputContract();
         try {
             Class.forName("org.postgres.Driver");
             c = DriverManager.getConnection("jdbc:postgres:" +
                             "//localhost:" +
                             "5432" +
-                            "/mydb",
+                            "/mydb?useSSL=false",
                     "postgres", "root");
         }catch (Exception e) {
             System.out.println("table cannot be created");
         }
-        System.out.println("Enter the ID of the task you " +
-                "want to Update: ");
-        Scanner input = new Scanner(System.in);
-        System.out.println("Enter ID");
-        int update_id = input.nextInt();
-        System.out.println("Enter Status to be Updated");
-        String update_status = input.next();
         try {
             PreparedStatement st = c.prepareStatement("UPDATE todo" +
                     " set status = ? where ID=?;");
             /* updating records */
-            st.setString(1, update_status);
-            st.setInt(2, update_id);
+            st.setString(1, String.valueOf(modifyInputContract.status));
+            st.setInt(2, modifyInputContract.id);
             st.executeUpdate();
             System.out.println("Updated Successfully");
         } catch (Exception exp) {
             System.out.println("cannot update");
         }
-
+        return modifyOutputContract;
     }
 
     @Override
-    public void show() {
+    public GetContract.GetOutputContract show(GetContract.GetInputContract getInputContract) {
+        GetContract.GetOutputContract getOutputContract = new GetContract.GetOutputContract();
         try {
             Class.forName("org.postgres.Driver");
             c = DriverManager.getConnection("jdbc:postgres:" +
                             "//localhost:" +
                             "5432" +
-                            "/mydb",
+                            "/mydb?useSSL=false",
                     "postgres", "root");
         }catch (Exception e) {
             System.out.println("table cannot be created");
@@ -158,5 +149,6 @@ public  class DBTodo implements  TaskServices {
         } catch (Exception exp) {
             System.out.println("cannot get details");
         }
+        return getOutputContract;
     }
 }
